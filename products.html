@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gallery Shop</title>
+  <link rel="icon" href="images/icons8-easel-64.png">
+  <script src="https://kit.fontawesome.com/96fb1f6ebf.js" crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9219377097183768" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="bootstrap.min.css">
+  <meta name="description" content="Kabonge George is an artist specializing in various art forms. Explore his unique artworks and collections.">
+  <meta name="keywords" content="Kabonge George, artist, artwork, paintings, sculptures, creative, contemporary art">
+  <meta name="author" content="Kabonge George">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph meta tags for social sharing -->
+  <meta property="og:title" content="Kabonge George - Artist">
+  <meta property="og:description" content="Kabonge George is an artist specializing in various art forms. Explore his unique artworks and collections.">
+  <meta property="og:image" content="https://example.com/images/artist.jpg"> <!-- Replace with the URL of the artist's profile image -->
+  <meta property="og:url" content="https://kabongegeorge.art">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card meta tags for Twitter sharing -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kabonge George - Artist">
+  <meta name="twitter:description" content="Kabonge George is an artist specializing in various art forms. Explore his unique artworks and collections.">
+  <meta name="twitter:image" content="https://example.com/images/artist.jpg"> <!-- Replace with the URL of the artist's profile image -->
+
+  <link rel="stylesheet" href="products.css">
+</head>
+<body>
+ 
+    <header>
+      <nav>
+        <div class="logo">
+        Gallery Shop
+        </div>
+        <input type="checkbox" id="click">
+        <label for="click" class="menu-btn">
+          <i class="fas fa-bars"></i>
+        </label>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a class="active" href="products.html">Gallery Shop</a></li>
+          <li><a href="Events.html">Events</a></li>
+          <li><a  href="management.html">MGMT</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="loader-container">
+  <div class="loader"></div>
+</div>
+
+
+
+<div class="modal">
+  <span class="close">&times;</span>
+  <img id="modalImg" class="modal-content">
+</div>
+
+<div class="intro">
+<h1 class="text-glow"></h1>
+
+<h1><span class="text-gradient"></span></h1>
+
+<h1 class="text-glow">
+  <span class="text-gradient">Find the art piece </span> 
+  of your dreams...
+</h1>
+</div>
+<div class="search-container">
+  <input type="text" id="search-input" placeholder="Search for products..." required>
+  <button id="search-button">Search</button>
+</div>
+
+<div class="rotating-text-wrapper">
+  <h2>An extra-ordinary Visual Artist</h2>
+  <h2>Discover a wide range of ART Pieces</h2>
+  <h2>with the one and only Kabonge George</h2>
+</div>
+
+<div class="grid-container" id="products-grid">
+  <!-- Product cards will be dynamically added here -->
+</div>
+<div id="no-results-container">
+  <p id="no-results-msg">No matching products found.</p>
+  <div id="giphy-container"></div>
+</div>
+
+
+    <div id="products-list"></div>
+    <div class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImg">
+      </div>
+      
+    
+
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js";
+      import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDLrlWB2tvKfIDPMeQanryBbttxx6tJJ_I",
+        authDomain: "bibo-d195d.firebaseapp.com",
+        databaseURL: "https://bibo-d195d-default-rtdb.firebaseio.com",
+        projectId: "bibo-d195d",
+        storageBucket: "bibo-d195d.appspot.com",
+        messagingSenderId: "18980246378",
+        appId: "1:18980246378:web:bdfa3d894690851b4a0b13",
+        measurementId: "G-0NHWZMJGCR"
+      };
+      const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const productsRef = ref(database, "products");
+
+  const loaderContainer = document.querySelector('.loader-container');
+  const productsList = document.getElementById("products-list");
+  const modal = document.querySelector('.modal');
+  const modalImg = document.getElementById("modalImg");
+  const closeBtn = document.querySelector('.close');
+
+  loaderContainer.style.display = "flex"; // show the loader
+// Declare gridContainer outside the displayProducts function
+const gridContainer = document.createElement("div");
+gridContainer.classList.add("products-grid");
+productsList.appendChild(gridContainer);
+  // Function to display products
+  const displayProducts = (products) => {
+    gridContainer.innerHTML = ""; // Clear the grid container
+
+    if (products.length === 0) {
+  const noResultsMsg = document.createElement("p");
+  noResultsMsg.classList.add("no-results-msg");
+  noResultsMsg.innerText = "No matching products found.";
+  gridContainer.appendChild(noResultsMsg);
+}
+ else {
+      products.forEach((product) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+
+        const title = document.createElement("h2");
+        title.innerText = product.name;
+        card.appendChild(title);
+
+        const desc = document.createElement("p");
+        desc.innerText = product.description;
+        card.appendChild(desc);
+// Inside the loop where you create the card element
+const quality = document.createElement("div");
+quality.classList.add("quality");
+
+for (let i = 0; i < 5; i++) {
+  const starIcon = document.createElement("i");
+  starIcon.classList.add("fas", "fa-star");
+  quality.appendChild(starIcon);
+}
+
+const qualityText = document.createElement("span");
+qualityText.innerText = "High Quality";
+quality.appendChild(qualityText);
+
+card.appendChild(quality);
+
+// Inside the loop where you create the card element
+const satisfactionContainer = document.createElement("div");
+satisfactionContainer.classList.add("satisfaction");
+
+const satisfactionIcon = document.createElement("i");
+satisfactionIcon.classList.add("fas", "fa-thumbs-up");
+
+const satisfactionText = document.createElement("span");
+satisfactionText.innerText = "Satisfaction: " + "100%";
+
+satisfactionContainer.appendChild(satisfactionIcon);
+satisfactionContainer.appendChild(satisfactionText);
+card.appendChild(satisfactionContainer);
+
+// Inside the loop where you create the card element
+const deliveryContainer = document.createElement("div");
+deliveryContainer.classList.add("delivery");
+
+const deliveryIcon = document.createElement("i");
+deliveryIcon.classList.add("fas", "fa-truck");
+
+const deliveryText = document.createElement("span");
+deliveryText.innerText = "Quick Delivery";
+
+deliveryContainer.appendChild(deliveryIcon);
+deliveryContainer.appendChild(deliveryText);
+card.appendChild(deliveryContainer);
+
+        const price = document.createElement("p");
+        price.innerText = `Price: $${product.price}`;
+        card.appendChild(price);
+        const img = document.createElement("img");
+img.src = product.image;
+img.alt = product.name;
+img.classList.add("product-img");
+img.classList.add("same-height-img"); // Add a class for styling
+
+card.appendChild(img);
+
+        img.addEventListener("click", () => {
+          modal.style.display = "block";
+          modalImg.src = img.src;
+        });
+
+        card.appendChild(img);
+
+        const sendBtn = document.createElement("button");
+sendBtn.innerHTML = `<i class="fab fa-whatsapp"></i> Inquire from Shop`;
+sendBtn.classList.add("send-btn");
+
+sendBtn.addEventListener("click", () => {
+  const message = `Hi, I'm interested in buying ${product.name} at Price: $${product.price}.`;
+  console.log(`Sending message "${message}" to seller`);
+  const encodedMessage = encodeURIComponent(message);
+  const whatsappUrl = `https://wa.me/${+256774447277}?text=${encodedMessage}`;
+  window.open(whatsappUrl, '_blank');
+});
+
+card.appendChild(sendBtn);
+
+
+        // Inside the loop where you create the card element
+const shareContainer = document.createElement("div");
+shareContainer.classList.add("share");
+
+const shareIcon = document.createElement("i");
+shareIcon.classList.add("fas", "fa-share-alt");
+
+const shareText = document.createElement("span");
+shareText.innerText = "Share Product";
+
+shareContainer.appendChild(shareIcon);
+shareContainer.appendChild(shareText);
+card.appendChild(shareContainer);
+
+// ...
+
+// Share button click event
+shareContainer.addEventListener("click", () => {
+  const shareUrl = `https://kabongegeorge.art/products.html`; // Replace "example.com/search" with the actual URL of the search page
+  const shareTitle = product.name; // Replace with the actual name of the product
+  const shareDescription = product.description;
+  const shareImage = product.image; // Assuming the product object has an "image" property
+
+  // Check if the Web Share API is available in the browser
+  if (navigator.share) {
+    navigator
+      .share({
+        title: shareTitle,
+        url: shareUrl,
+        text: shareDescription,
+      })
+      .then(() => {
+        console.log("Product shared successfully");
+      })
+      .catch((error) => {
+        console.error("Error sharing product:", error);
+      });
+  } else {
+    // Fallback behavior for browsers that do not support the Web Share API
+    const link = document.createElement("a");
+    link.href = shareUrl;
+    link.target = "_blank";
+
+    const image = document.createElement("img");
+    image.src = shareImage;
+    image.alt = shareTitle;
+    link.appendChild(image);
+
+    const description = document.createElement("p");
+    description.innerText = shareDescription;
+    link.appendChild(description);
+
+    link.click();
+  }
+});
+
+// ...
+
+
+
+
+
+
+        gridContainer.appendChild(card);
+      });
+    }
+  };
+get(productsRef).then((snapshot) => {
+  const data = snapshot.val();
+  const gridContainer = document.createElement("div");
+  gridContainer.classList.add("products-grid");
+  productsList.appendChild(gridContainer);
+
+  let products = Object.values(data); // Convert the snapshot object to an array of products
+
+  // Function to search for products
+  const searchProducts = (query) => {
+    const filteredProducts = products.filter((product) => {
+      return product.name.toLowerCase().includes(query.toLowerCase());
+    });
+
+    displayProducts(filteredProducts);
+  };
+  const storedProducts = localStorage.getItem('products');
+    if (storedProducts) {
+      // Parse the stored products as JSON and use them
+      const products = JSON.parse(storedProducts);
+      displayProducts(products);
+    } else {
+      // Retrieve the products from the Firebase database
+      get(productsRef).then((snapshot) => {
+        const data = snapshot.val();
+        const products = Object.values(data);
+
+        // Store the products in the local storage
+        localStorage.setItem('products', JSON.stringify(products));
+
+        displayProducts(products);
+      });
+    }
+
+
+  displayProducts(products); // Display all products initially
+
+  loaderContainer.style.display = "none"; // hide the loader container
+
+  // Function to filter products based on search input
+  const filterProducts = () => {
+    const searchInput = document.getElementById("search-input");
+    const searchTerm = searchInput.value.toLowerCase();
+
+    const filteredProducts = products.filter((product) => {
+      return product.name.toLowerCase().includes(searchTerm);
+    });
+
+    loaderContainer.style.display = "flex"; // show the loader
+    setTimeout(() => {
+      displayProducts(filteredProducts);
+      loaderContainer.style.display = "none"; // hide the loader
+    }, 1000); // Simulating a delay of 1 second before displaying the filtered products
+  };
+
+ // Function to get the search query parameter from URL
+ const getSearchQuery = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("search");
+  };
+
+  // Get the search query parameter
+  const searchQuery = getSearchQuery();
+
+  // Search button event listener
+  const searchButton = document.getElementById("search-button");
+  searchButton.addEventListener("click", () => {
+    const searchInput = document.getElementById("search-input");
+    const searchTerm = searchInput.value.trim();
+
+    searchProducts(searchTerm);
+  });
+
+  // Trigger the search based on the search query
+  if (searchQuery) {
+    const searchInput = document.getElementById("search-input");
+    searchInput.value = searchQuery;
+    searchProducts(searchQuery);
+  }
+
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+});
+    </script>
+
+  <div>
+    <footer class="footer-section">
+      <div class="container">
+          <div class="footer-cta pt-5 pb-5">
+              <div class="row">
+                  <div class="col-xl-4 col-md-4 mb-30">
+                      <div class="single-cta">
+                          <i class="fas fa-map-marker-alt"></i>
+                          <div class="cta-text">
+                              <h4>Find me</h4>
+                              <span>Mukono - Seeta (Uganda)
+                              </span>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="col-xl-4 col-md-4 mb-30">
+                      <div class="single-cta">
+                          <i class="fas fa-phone"></i>
+                          <div class="cta-text">
+                              <h4>Call me</h4>
+                              <span>+(256) 774 447 277</span>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="col-xl-4 col-md-4 mb-30">
+                      <div class="single-cta">
+                          <i class="far fa-envelope-open"></i>
+                          <div class="cta-text">
+                              <h4>Mail me</h4>
+                              <span>georgekabonge@gmail.com</span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <div class="footer-content pt-5 pb-5">
+              <div class="row">
+                  <div class="col-xl-4 col-lg-4 mb-50">
+                      <div class="footer-widget">
+                          <div class="footer-logo">
+                              <a href="index.html"><img src="images/4.jpeg" class="img-fluid" alt="kabongegeorge"</a>
+                          </div>
+                          <div class="footer-text">
+                              <p> I love exploring different themes using the pointillism style where I put various vibrant dots or strokes of color in most of my paintings. Different hues mostly appear in contrast to one another. I am inspired by day-to-day life experiences which I depict using vibrant dots or strokes of hues on canvas. I use oil paints and acrylics on canvas to portray messages.</p>
+                          </div>
+                          <div class="footer-social-icon">
+                              <span>Follow Me</span>
+                              <a href="https://www.facebook.com/kabongegeorge"><i class="fab fa-facebook-f facebook-bg"></i></a>
+                              <a href="https://twitter.com/Kabongeart"><i class="fab fa-twitter twitter-bg"></i></a>
+                              <a href="https://www.instagram.com/georgekabonge"><i class="fa-brands fa-instagram "></i></a>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-6 mb-30">
+                      <div class="footer-widget">
+                          <div class="footer-widget-heading">
+                              <h3>Useful Links</h3>
+                          </div>
+                          <ul>
+                              <li><a href="index.html">Home</a></li>
+                              <li><a href="index.html">about</a></li>
+                              
+                             
+                              
+                              <li><a href="index.html">My Services</a></li>
+          
+                              <li><a href="index.html">Contact me</a></li>
+                              <li><a href="Gallery-Shop.html">Latest News</a></li>
+                          </ul>
+                      </div>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-6 mb-50">
+                      <div class="footer-widget">
+                          <div class="footer-widget-heading">
+                              <h3>Subscribe</h3>
+                          </div>
+                          <div class="footer-text mb-25">
+                              <p>Don’t miss to subscribe to my new feeds, kindly fill the form below.</p>
+                          </div>
+                          <div class="subscribe-form">
+                            <form action="mailto:georgekabonge@gmail.com" method="post">
+                              <input type="text" name="Email Address" placeholder="Email Address">
+                              <button type="submit"><i class="fab fa-telegram-plane"></i></button>
+                            </form>
+                            
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="copyright-area">
+          <div class="container">
+              <div class="row">
+                  <div class="col-xl-6 col-lg-6 text-center text-lg-left">
+                      <div class="copyright-text">
+                          <p>Copyright &copy; 2023, All Right Reserved <a href="index.html">kabongegeorge</a></p>
+                      </div>
+                  </div>
+                  <div class="col-xl-6 col-lg-6 d-none d-lg-block text-right">
+                      <div class="footer-menu">
+                          <ul>
+                              <li><a href="index.html">Home</a></li>
+                              <li><a href="index.html">Terms</a></li>
+                              <li><a href="index.html">Privacy</a></li>
+                              <li><a href="index.html">Policy</a></li>
+                              <li><a href="index.html">Contact</a></li>
+                          </ul>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </footer>
+    </div>
+  </body>
+</html>
